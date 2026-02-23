@@ -1,0 +1,288 @@
+{
+  "name": "ai-review",
+  "displayName": "AI Review",
+  "description": "GitHub PR-style code review for AI-generated changes",
+  "version": "0.1.0",
+  "publisher": "suyash",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-review",
+          "title": "AI Review",
+          "icon": "media/icons/review.svg"
+        }
+      ]
+    },
+    "views": {
+      "ai-review": [
+        {
+          "id": "aiReview.changedFiles",
+          "name": "Changed Files"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "aiReview.startReview",
+        "title": "Start Review",
+        "category": "AI Review",
+        "icon": "$(play)"
+      },
+      {
+        "command": "aiReview.submitReview",
+        "title": "Submit Review",
+        "category": "AI Review",
+        "icon": "$(check)"
+      },
+      {
+        "command": "aiReview.cancelReview",
+        "title": "Cancel Review",
+        "category": "AI Review",
+        "icon": "$(close)"
+      },
+      {
+        "command": "aiReview.markFileReviewed",
+        "title": "Mark File as Reviewed",
+        "category": "AI Review",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "aiReview.nextFile",
+        "title": "Next Changed File",
+        "category": "AI Review",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "aiReview.prevFile",
+        "title": "Previous Changed File",
+        "category": "AI Review",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "aiReview.showHistory",
+        "title": "Show Review History",
+        "category": "AI Review",
+        "icon": "$(history)"
+      },
+      {
+        "command": "aiReview.changeBaseRef",
+        "title": "Change Base Reference",
+        "category": "AI Review",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "aiReview.refreshFiles",
+        "title": "Refresh Changed Files",
+        "category": "AI Review",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "aiReview.openFileDiff",
+        "title": "Open File Diff",
+        "category": "AI Review"
+      },
+      {
+        "command": "aiReview.createComment",
+        "title": "Add Review Comment",
+        "category": "AI Review",
+        "icon": "$(add)"
+      },
+      {
+        "command": "aiReview.replyComment",
+        "title": "Reply to Comment",
+        "category": "AI Review",
+        "icon": "$(reply)"
+      },
+      {
+        "command": "aiReview.saveComment",
+        "title": "Save Comment",
+        "category": "AI Review",
+        "icon": "$(check)"
+      },
+      {
+        "command": "aiReview.editComment",
+        "title": "Edit Comment",
+        "category": "AI Review",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "aiReview.cancelEdit",
+        "title": "Cancel Edit",
+        "category": "AI Review",
+        "icon": "$(close)"
+      },
+      {
+        "command": "aiReview.deleteComment",
+        "title": "Delete Comment",
+        "category": "AI Review",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "aiReview.toggleResolved",
+        "title": "Toggle Resolved",
+        "category": "AI Review",
+        "icon": "$(issue-closed)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "aiReview.startReview",
+          "when": "view == aiReview.changedFiles && !aiReview.active",
+          "group": "navigation"
+        },
+        {
+          "command": "aiReview.submitReview",
+          "when": "view == aiReview.changedFiles && aiReview.active",
+          "group": "navigation@1"
+        },
+        {
+          "command": "aiReview.refreshFiles",
+          "when": "view == aiReview.changedFiles && aiReview.active",
+          "group": "navigation@2"
+        },
+        {
+          "command": "aiReview.cancelReview",
+          "when": "view == aiReview.changedFiles && aiReview.active",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "aiReview.markFileReviewed",
+          "when": "view == aiReview.changedFiles && viewItem =~ /^changedFile/",
+          "group": "inline"
+        }
+      ],
+      "comments/commentThread/context": [
+        {
+          "command": "aiReview.createComment",
+          "group": "inline",
+          "when": "commentController == ai-review-comments && commentThreadIsEmpty"
+        },
+        {
+          "command": "aiReview.replyComment",
+          "group": "inline",
+          "when": "commentController == ai-review-comments && !commentThreadIsEmpty"
+        }
+      ],
+      "comments/comment/title": [
+        {
+          "command": "aiReview.editComment",
+          "group": "group@1",
+          "when": "commentController == ai-review-comments"
+        },
+        {
+          "command": "aiReview.deleteComment",
+          "group": "group@2",
+          "when": "commentController == ai-review-comments"
+        },
+        {
+          "command": "aiReview.toggleResolved",
+          "group": "group@3",
+          "when": "commentController == ai-review-comments"
+        }
+      ],
+      "comments/comment/context": [
+        {
+          "command": "aiReview.cancelEdit",
+          "group": "inline@1",
+          "when": "commentController == ai-review-comments"
+        },
+        {
+          "command": "aiReview.saveComment",
+          "group": "inline@2",
+          "when": "commentController == ai-review-comments"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "aiReview.startReview",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "aiReview.nextFile",
+        "key": "alt+]",
+        "when": "aiReview.active"
+      },
+      {
+        "command": "aiReview.prevFile",
+        "key": "alt+[",
+        "when": "aiReview.active"
+      },
+      {
+        "command": "aiReview.markFileReviewed",
+        "key": "alt+r",
+        "when": "aiReview.active"
+      },
+      {
+        "command": "aiReview.submitReview",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "aiReview.active"
+      }
+    ],
+    "configuration": {
+      "title": "AI Review",
+      "properties": {
+        "aiReview.baseRef": {
+          "type": "string",
+          "default": "HEAD~1",
+          "description": "Default base git reference for comparison"
+        },
+        "aiReview.outputDir": {
+          "type": "string",
+          "default": ".ai-review",
+          "description": "Directory for review output files (relative to workspace root)"
+        },
+        "aiReview.autoDetectChanges": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect new commits and prompt for review"
+        },
+        "aiReview.defaultSeverity": {
+          "type": "string",
+          "default": "suggestion",
+          "enum": [
+            "must_fix",
+            "suggestion",
+            "nitpick",
+            "question"
+          ],
+          "description": "Default severity level for new comments"
+        },
+        "aiReview.addToGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically add review output directory to .gitignore"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "package": "npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.19.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "simple-git": "^3.22.0"
+  }
+}
