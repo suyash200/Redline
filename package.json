@@ -9,6 +9,7 @@
     "type": "git",
     "url": "https://github.com/suyash/redline"
   },
+  "icon": "media/icons/logo.png",
   "engines": {
     "vscode": "^1.85.0"
   },

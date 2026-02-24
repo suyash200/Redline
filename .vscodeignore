@@ -7,3 +7,4 @@ esbuild.js
 .gitignore
 **/*.map
 **/*.ts
+.gitignore

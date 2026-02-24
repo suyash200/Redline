@@ -1,7 +1,6 @@
-import * as path from 'path';
 import simpleGit, { SimpleGit, DiffResultTextFile } from 'simple-git';
 import { ChangedFile, FileStatus, CommitInfo } from './types';
-import { logInfo, logError } from '../utils/logger';
+import { logInfo, logWarn } from '../utils/logger';
 
 export class GitService {
     private git: SimpleGit;
@@ -25,54 +24,108 @@ export class GitService {
     }
 
     /**
-     * Get the list of changed files between two refs.
+     * Get the list of changed files between two refs, PLUS any staged,
+     * unstaged, or untracked working-tree changes.
+     *
+     * This means brand-new files (never committed) like `main/index.ts`
+     * will still appear in the review session — no commit required.
      */
     async getChangedFiles(baseRef: string, headRef: string = 'HEAD'): Promise<ChangedFile[]> {
         logInfo(`Getting changed files: ${baseRef}..${headRef}`);
 
-        // Get file statuses (A/M/D/R)
-        const nameStatusOutput = await this.git.raw([
-            'diff', '--name-status', baseRef, headRef,
-        ]);
-
-        // Get line counts
-        const diffSummary = await this.git.diffSummary([`${baseRef}..${headRef}`]);
-
-        // Build a lookup for line counts by file path
-        const statsByFile = new Map<string, { additions: number; deletions: number }>();
-        for (const file of diffSummary.files) {
-            const textFile = file as DiffResultTextFile;
-            statsByFile.set(textFile.file, {
-                additions: textFile.insertions ?? 0,
-                deletions: textFile.deletions ?? 0,
-            });
-        }
-
-        // Parse name-status output
+        const seenPaths = new Set<string>();
         const files: ChangedFile[] = [];
-        const lines = nameStatusOutput.trim().split('\n').filter(Boolean);
 
-        for (const line of lines) {
-            const parts = line.split('\t');
-            if (parts.length < 2) { continue; }
+        // ── 1. Committed diff between baseRef and headRef ─────────────────────
+        try {
+            const nameStatusOutput = await this.git.raw(['diff', '--name-status', baseRef, headRef]);
+            const diffSummary = await this.git.diffSummary([`${baseRef}..${headRef}`]);
 
-            const statusCode = parts[0].charAt(0);
-            const filePath = parts[parts.length === 3 ? 2 : 1]; // For renames, new path is index 2
-            const oldPath = parts.length === 3 ? parts[1] : undefined;
+            const statsByFile = new Map<string, { additions: number; deletions: number }>();
+            for (const file of diffSummary.files) {
+                const textFile = file as DiffResultTextFile;
+                statsByFile.set(textFile.file, {
+                    additions: textFile.insertions ?? 0,
+                    deletions: textFile.deletions ?? 0,
+                });
+            }
 
-            const status = mapGitStatus(statusCode);
-            const stats = statsByFile.get(filePath) ?? statsByFile.get(oldPath ?? '') ?? { additions: 0, deletions: 0 };
+            for (const line of nameStatusOutput.trim().split('\n').filter(Boolean)) {
+                const parts = line.split('\t');
+                if (parts.length < 2) { continue; }
 
-            files.push({
-                path: filePath,
-                status,
-                additions: stats.additions,
-                deletions: stats.deletions,
-                oldPath,
-            });
+                const statusCode = parts[0].charAt(0);
+                const filePath = parts[parts.length === 3 ? 2 : 1].trim();
+                const oldPath = parts.length === 3 ? parts[1].trim() : undefined;
+                if (!filePath || seenPaths.has(filePath)) { continue; }
+
+                const stats = statsByFile.get(filePath) ?? statsByFile.get(oldPath ?? '') ?? { additions: 0, deletions: 0 };
+                files.push({ path: filePath, status: mapGitStatus(statusCode), additions: stats.additions, deletions: stats.deletions, oldPath });
+                seenPaths.add(filePath);
+            }
+        } catch (err) {
+            logWarn(`Could not get committed diff: ${err}`);
         }
 
-        logInfo(`Found ${files.length} changed files`);
+        // ── 2. Staged changes (git add'd but not yet committed) ───────────────
+        try {
+            const staged = await this.git.raw(['diff', '--name-status', '--cached']);
+            for (const line of staged.trim().split('\n').filter(Boolean)) {
+                const parts = line.split('\t');
+                if (parts.length < 2) { continue; }
+                const filePath = parts[parts.length === 3 ? 2 : 1].trim();
+                if (!filePath || seenPaths.has(filePath)) { continue; }
+
+                files.push({
+                    path: filePath,
+                    status: mapGitStatus(parts[0].charAt(0)),
+                    additions: 0,
+                    deletions: 0,
+                    oldPath: parts.length === 3 ? parts[1].trim() : undefined,
+                });
+                seenPaths.add(filePath);
+            }
+        } catch (err) {
+            logWarn(`Could not get staged changes: ${err}`);
+        }
+
+        // ── 3. Unstaged modifications to tracked files ────────────────────────
+        try {
+            const unstaged = await this.git.raw(['diff', '--name-status']);
+            for (const line of unstaged.trim().split('\n').filter(Boolean)) {
+                const parts = line.split('\t');
+                if (parts.length < 2) { continue; }
+                const filePath = parts[parts.length === 3 ? 2 : 1].trim();
+                if (!filePath || seenPaths.has(filePath)) { continue; }
+
+                files.push({
+                    path: filePath,
+                    status: mapGitStatus(parts[0].charAt(0)),
+                    additions: 0,
+                    deletions: 0,
+                    oldPath: parts.length === 3 ? parts[1].trim() : undefined,
+                });
+                seenPaths.add(filePath);
+            }
+        } catch (err) {
+            logWarn(`Could not get unstaged changes: ${err}`);
+        }
+
+        // ── 4. Untracked files (brand-new, never committed) ───────────────────
+        try {
+            const untracked = await this.git.raw(['ls-files', '--others', '--exclude-standard']);
+            for (const rawPath of untracked.trim().split('\n').filter(Boolean)) {
+                const filePath = rawPath.trim();
+                if (!filePath || seenPaths.has(filePath)) { continue; }
+
+                files.push({ path: filePath, status: 'added', additions: 0, deletions: 0 });
+                seenPaths.add(filePath);
+            }
+        } catch (err) {
+            logWarn(`Could not get untracked files: ${err}`);
+        }
+
+        logInfo(`Found ${files.length} changed files (committed + working tree)`);
         return files;
     }
 
