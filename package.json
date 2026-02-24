@@ -1,9 +1,14 @@
 {
-  "name": "ai-review",
-  "displayName": "AI Review",
-  "description": "GitHub PR-style code review for AI-generated changes",
+  "name": "redline",
+  "displayName": "Redline",
+  "description": "Redline your AI's code before it ships — PR-style review for AI-generated changes",
   "version": "0.1.0",
   "publisher": "suyash",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/suyash/redline"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -16,242 +21,242 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "ai-review",
-          "title": "AI Review",
+          "id": "redline",
+          "title": "Redline",
           "icon": "media/icons/review.svg"
         }
       ]
     },
     "views": {
-      "ai-review": [
+      "redline": [
         {
-          "id": "aiReview.changedFiles",
+          "id": "redline.changedFiles",
           "name": "Changed Files"
         }
       ]
     },
     "commands": [
       {
-        "command": "aiReview.startReview",
+        "command": "redline.startReview",
         "title": "Start Review",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(play)"
       },
       {
-        "command": "aiReview.submitReview",
+        "command": "redline.submitReview",
         "title": "Submit Review",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(check)"
       },
       {
-        "command": "aiReview.cancelReview",
+        "command": "redline.cancelReview",
         "title": "Cancel Review",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(close)"
       },
       {
-        "command": "aiReview.markFileReviewed",
+        "command": "redline.markFileReviewed",
         "title": "Mark File as Reviewed",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(pass)"
       },
       {
-        "command": "aiReview.nextFile",
+        "command": "redline.nextFile",
         "title": "Next Changed File",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(arrow-down)"
       },
       {
-        "command": "aiReview.prevFile",
+        "command": "redline.prevFile",
         "title": "Previous Changed File",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "aiReview.showHistory",
+        "command": "redline.showHistory",
         "title": "Show Review History",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(history)"
       },
       {
-        "command": "aiReview.changeBaseRef",
+        "command": "redline.changeBaseRef",
         "title": "Change Base Reference",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(git-branch)"
       },
       {
-        "command": "aiReview.refreshFiles",
+        "command": "redline.refreshFiles",
         "title": "Refresh Changed Files",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(refresh)"
       },
       {
-        "command": "aiReview.openFileDiff",
+        "command": "redline.openFileDiff",
         "title": "Open File Diff",
-        "category": "AI Review"
+        "category": "Redline"
       },
       {
-        "command": "aiReview.createComment",
+        "command": "redline.createComment",
         "title": "Add Review Comment",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(add)"
       },
       {
-        "command": "aiReview.replyComment",
+        "command": "redline.replyComment",
         "title": "Reply to Comment",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(reply)"
       },
       {
-        "command": "aiReview.saveComment",
+        "command": "redline.saveComment",
         "title": "Save Comment",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(check)"
       },
       {
-        "command": "aiReview.editComment",
+        "command": "redline.editComment",
         "title": "Edit Comment",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(edit)"
       },
       {
-        "command": "aiReview.cancelEdit",
+        "command": "redline.cancelEdit",
         "title": "Cancel Edit",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(close)"
       },
       {
-        "command": "aiReview.deleteComment",
+        "command": "redline.deleteComment",
         "title": "Delete Comment",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(trash)"
       },
       {
-        "command": "aiReview.toggleResolved",
+        "command": "redline.toggleResolved",
         "title": "Toggle Resolved",
-        "category": "AI Review",
+        "category": "Redline",
         "icon": "$(issue-closed)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "aiReview.startReview",
-          "when": "view == aiReview.changedFiles && !aiReview.active",
+          "command": "redline.startReview",
+          "when": "view == redline.changedFiles && !redline.active",
           "group": "navigation"
         },
         {
-          "command": "aiReview.submitReview",
-          "when": "view == aiReview.changedFiles && aiReview.active",
+          "command": "redline.submitReview",
+          "when": "view == redline.changedFiles && redline.active",
           "group": "navigation@1"
         },
         {
-          "command": "aiReview.refreshFiles",
-          "when": "view == aiReview.changedFiles && aiReview.active",
+          "command": "redline.refreshFiles",
+          "when": "view == redline.changedFiles && redline.active",
           "group": "navigation@2"
         },
         {
-          "command": "aiReview.cancelReview",
-          "when": "view == aiReview.changedFiles && aiReview.active",
+          "command": "redline.cancelReview",
+          "when": "view == redline.changedFiles && redline.active",
           "group": "navigation@3"
         }
       ],
       "view/item/context": [
         {
-          "command": "aiReview.markFileReviewed",
-          "when": "view == aiReview.changedFiles && viewItem =~ /^changedFile/",
+          "command": "redline.markFileReviewed",
+          "when": "view == redline.changedFiles && viewItem =~ /^changedFile/",
           "group": "inline"
         }
       ],
       "comments/commentThread/context": [
         {
-          "command": "aiReview.createComment",
+          "command": "redline.createComment",
           "group": "inline",
-          "when": "commentController == ai-review-comments && commentThreadIsEmpty"
+          "when": "commentController == redline-comments && commentThreadIsEmpty"
         },
         {
-          "command": "aiReview.replyComment",
+          "command": "redline.replyComment",
           "group": "inline",
-          "when": "commentController == ai-review-comments && !commentThreadIsEmpty"
+          "when": "commentController == redline-comments && !commentThreadIsEmpty"
         }
       ],
       "comments/comment/title": [
         {
-          "command": "aiReview.editComment",
+          "command": "redline.editComment",
           "group": "group@1",
-          "when": "commentController == ai-review-comments"
+          "when": "commentController == redline-comments"
         },
         {
-          "command": "aiReview.deleteComment",
+          "command": "redline.deleteComment",
           "group": "group@2",
-          "when": "commentController == ai-review-comments"
+          "when": "commentController == redline-comments"
         },
         {
-          "command": "aiReview.toggleResolved",
+          "command": "redline.toggleResolved",
           "group": "group@3",
-          "when": "commentController == ai-review-comments"
+          "when": "commentController == redline-comments"
         }
       ],
       "comments/comment/context": [
         {
-          "command": "aiReview.cancelEdit",
+          "command": "redline.cancelEdit",
           "group": "inline@1",
-          "when": "commentController == ai-review-comments"
+          "when": "commentController == redline-comments"
         },
         {
-          "command": "aiReview.saveComment",
+          "command": "redline.saveComment",
           "group": "inline@2",
-          "when": "commentController == ai-review-comments"
+          "when": "commentController == redline-comments"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "aiReview.startReview",
+        "command": "redline.startReview",
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r"
       },
       {
-        "command": "aiReview.nextFile",
+        "command": "redline.nextFile",
         "key": "alt+]",
-        "when": "aiReview.active"
+        "when": "redline.active"
       },
       {
-        "command": "aiReview.prevFile",
+        "command": "redline.prevFile",
         "key": "alt+[",
-        "when": "aiReview.active"
+        "when": "redline.active"
       },
       {
-        "command": "aiReview.markFileReviewed",
-        "key": "alt+r",
-        "when": "aiReview.active"
+        "command": "redline.markFileReviewed",
+        "key": "alt+shift+r",
+        "when": "redline.active"
       },
       {
-        "command": "aiReview.submitReview",
+        "command": "redline.submitReview",
         "key": "ctrl+shift+s",
         "mac": "cmd+shift+s",
-        "when": "aiReview.active"
+        "when": "redline.active"
       }
     ],
     "configuration": {
-      "title": "AI Review",
+      "title": "Redline",
       "properties": {
-        "aiReview.baseRef": {
+        "redline.baseRef": {
           "type": "string",
           "default": "HEAD~1",
           "description": "Default base git reference for comparison"
         },
-        "aiReview.outputDir": {
+        "redline.outputDir": {
           "type": "string",
-          "default": ".ai-review",
+          "default": ".redline",
           "description": "Directory for review output files (relative to workspace root)"
         },
-        "aiReview.autoDetectChanges": {
+        "redline.autoDetectChanges": {
           "type": "boolean",
           "default": true,
           "description": "Automatically detect new commits and prompt for review"
         },
-        "aiReview.defaultSeverity": {
+        "redline.defaultSeverity": {
           "type": "string",
           "default": "suggestion",
           "enum": [
@@ -262,10 +267,15 @@
           ],
           "description": "Default severity level for new comments"
         },
-        "aiReview.addToGitignore": {
+        "redline.addToGitignore": {
           "type": "boolean",
           "default": true,
           "description": "Automatically add review output directory to .gitignore"
+        },
+        "redline.autoFixCommand": {
+          "type": "string",
+          "default": "npm run redline:fix",
+          "description": "Command to run when 'Submit & Auto-Fix' is clicked"
         }
       }
     }
