@@ -1,13 +1,13 @@
 {
   "name": "redline",
-  "displayName": "Redline",
+  "displayName": "Redline-Review",
   "description": "Redline your AI's code before it ships — PR-style review for AI-generated changes",
   "version": "0.2.0",
   "publisher": "suyash",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/suyash/redline"
+    "url": "https://github.com/suyash200/redline"
   },
   "icon": "media/icons/logo.png",
   "engines": {
