@@ -2,6 +2,27 @@
 
 All notable changes to the **Redline** extension will be documented in this file.
 
+## [0.2.0] - 2026-02-24
+
+### Added
+- **`@redline` Chat Participant** — Native AI chat integration using the VS Code Chat Participant API.
+  - `@redline /fix` — Reads the latest review TOML and asks the LLM to apply all must-fix and suggestion items.
+  - `@redline /review` — Summarises the latest review grouped by severity.
+  - `@redline <question>` — General Q&A with full review context.
+  - **Participant detection** — VS Code auto-routes review-related prompts to `@redline`.
+  - **Follow-up suggestions** — After `/fix`, suggests viewing the review summary (and vice versa).
+- **Redesigned Submit Review UI** — Polished webview with:
+  - Animated stat cards with gradient accents and hover glow.
+  - File review progress bar.
+  - Character-counted textarea with focus ring.
+  - Glow-on-select decision buttons with descriptive subtitles.
+  - Sticky frosted-glass footer bar with gradient submit buttons.
+  - Double-submit prevention.
+
+### Changed
+- **Auto-Fix** now opens `@redline /fix` in the IDE chat panel instead of spawning a terminal. Works natively with VS Code (Copilot), Cursor, Antigravity, and Windsurf.
+- Bumped minimum VS Code engine to `^1.93.0` (required for Chat Participant API).
+
 ## [0.1.0] - 2026-02-24
 
 ### Initial Release

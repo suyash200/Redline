@@ -7,6 +7,7 @@ import { ReviewStatusBarItem } from './views/statusBarItem';
 import { ReviewManager } from './review/reviewManager';
 import { ChangedFile } from './git/types';
 import { logInfo, disposeLogger } from './utils/logger';
+import { registerChatParticipant } from './chat/chatParticipant';
 
 let reviewManager: ReviewManager;
 
@@ -91,6 +92,10 @@ export function activate(context: vscode.ExtensionContext) {
         statusBarItem,
         { dispose: () => reviewManager.dispose() },
     );
+
+    // ── Register chat participant ─────────────────────────────────
+
+    registerChatParticipant(context, workspaceRoot);
 
     // Set initial context
     vscode.commands.executeCommand('setContext', 'redline.active', false);

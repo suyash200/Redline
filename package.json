@@ -11,7 +11,7 @@
   },
   "icon": "media/icons/logo.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.93.0"
   },
   "categories": [
     "Other"
@@ -19,6 +19,47 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "chatParticipants": [
+      {
+        "id": "redline.chat",
+        "name": "redline",
+        "fullName": "Redline Code Review",
+        "description": "Ask about your code review, or use /fix to auto-fix issues",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "fix",
+            "description": "Apply auto-fixes from the latest Redline review"
+          },
+          {
+            "name": "review",
+            "description": "Summarise the latest Redline review"
+          }
+        ],
+        "disambiguation": [
+          {
+            "category": "redline_fix",
+            "description": "The user wants to automatically fix issues found in a Redline code review.",
+            "examples": [
+              "Fix the issues from my code review",
+              "Apply the auto-fix suggestions",
+              "Fix all must-fix items from redline",
+              "Apply the review comments to my code"
+            ]
+          },
+          {
+            "category": "redline_review",
+            "description": "The user wants to see or understand their Redline code review results.",
+            "examples": [
+              "Show me my review summary",
+              "What issues did the review find?",
+              "Summarise the latest code review",
+              "What do I need to fix?"
+            ]
+          }
+        ]
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -289,7 +330,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.93.0",
     "esbuild": "^0.19.0",
     "typescript": "^5.3.0"
   },

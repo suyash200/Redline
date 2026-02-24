@@ -140,7 +140,7 @@ export class ReviewManager {
             logInfo(`Review submitted: ${decisionLabels[decision]} → ${filePath}`);
 
             if (autoFix) {
-                this.runAutoFix(filePath);
+                await this.runAutoFix(filePath);
             } else {
                 const action = await vscode.window.showInformationMessage(
                     `Review submitted: ${decisionLabels[decision]}. Saved to ${filePath}`,
@@ -163,21 +163,34 @@ export class ReviewManager {
 
     // ── Auto Fix ──────────────────────────────────────────────────
 
-    private runAutoFix(reviewPath: string): void {
-        const config = getConfig();
-        const command = config.autoFixCommand;
+    private async runAutoFix(_reviewPath: string): Promise<void> {
+        logInfo('Triggering Auto-Fix via @redline /fix chat participant');
 
-        logInfo(`Triggering Auto-Fix: ${command}`);
+        try {
+            // Open the VS Code chat panel with @redline /fix pre-populated.
+            // The @redline chat participant (registered in chat/chatParticipant.ts)
+            // handles the actual LLM call — it reads .redline/latest.toml and
+            // asks the model to apply the fixes.
+            await vscode.commands.executeCommand(
+                'workbench.action.chat.open',
+                { query: '@redline /fix' },
+            );
 
-        // Create a terminal to run the command
-        const terminal = vscode.window.createTerminal('Redline Auto-Fix');
-        terminal.show();
+            logInfo('Chat opened with @redline /fix');
+        } catch (err) {
+            logError('Failed to open chat for auto-fix', err);
 
-        // We pass the review path as an environment variable or argument if needed
-        // For now, we assume the command reads .redline/latest.toml
-        terminal.sendText(command);
+            // Fallback: show a message telling the user to invoke it manually
+            const action = await vscode.window.showWarningMessage(
+                '⚡ Redline: Could not open AI chat. Type `@redline /fix` in the chat panel manually.',
+                'Open Review File',
+            );
 
-        vscode.window.showInformationMessage(`⚡ Redline: Auto-fix requested. Running "${command}"...`);
+            if (action === 'Open Review File') {
+                const doc = await vscode.workspace.openTextDocument(_reviewPath);
+                await vscode.window.showTextDocument(doc, { preview: false });
+            }
+        }
     }
 
     // ── Cancel Review ─────────────────────────────────────────────
