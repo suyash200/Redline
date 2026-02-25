@@ -2,6 +2,17 @@
 
 All notable changes to the **Redline** extension will be documented in this file.
 
+## [0.2.3] - 2026-02-25
+
+### Added
+- **Unified Git Status Mode** — Redline now tracks staged, unstaged, and untracked files simultaneously, matching your terminal's `git status`.
+- **Live Line Metrics** — Real-time tracking of additions and deletions across staged and unstaged states.
+- **Intelligent Commit Selection** — Picking a commit from the history now automatically compares it against its parent (`commit~1`), allowing you to review exactly what that commit introduced.
+
+### Changed
+- **Optimized Auto-Fix Workflow** — Enhanced the `@redline` AI participant instructions to ensure issues are marked as resolved in the TOML output and verified for type safety.
+- **Smoother AI Handoff** — Direct command integration for opening the chat panel from the Submit webview.
+
 ## [0.2.2] - 2026-02-24
  - Fixing publisher  in pkg.json
 

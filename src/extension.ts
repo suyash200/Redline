@@ -93,9 +93,13 @@ export function activate(context: vscode.ExtensionContext) {
         { dispose: () => reviewManager.dispose() },
     );
 
-    // ── Register chat participant ─────────────────────────────────
+    // ── Register chat participant (VS Code only, graceful on Cursor) ──
 
-    registerChatParticipant(context, workspaceRoot);
+    try {
+        registerChatParticipant(context, workspaceRoot);
+    } catch {
+        logInfo('Chat participant API not available (not VS Code?) — skipping.');
+    }
 
     // Set initial context
     vscode.commands.executeCommand('setContext', 'redline.active', false);

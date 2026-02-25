@@ -44,6 +44,12 @@ export function registerChatParticipant(
         return handleGeneralQuestion(request, chatContext, stream, token, workspaceRoot);
     };
 
+    // Guard: `vscode.chat` does not exist in Cursor or older VS Code versions
+    if (!vscode.chat || typeof vscode.chat.createChatParticipant !== 'function') {
+        logInfo('vscode.chat API not available — chat participant not registered.');
+        return;
+    }
+
     // Create the participant
     const participant = vscode.chat.createChatParticipant(PARTICIPANT_ID, handler);
     participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'icons', 'logo.png');

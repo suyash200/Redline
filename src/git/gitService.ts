@@ -24,108 +24,89 @@ export class GitService {
     }
 
     /**
-     * Get the list of changed files between two refs, PLUS any staged,
-     * unstaged, or untracked working-tree changes.
+     * Get changed files using `git status --porcelain`.
+     * This matches exactly what `git status` shows:
+     *   - Staged changes
+     *   - Unstaged modifications
+     *   - Untracked new files
      *
-     * This means brand-new files (never committed) like `main/index.ts`
-     * will still appear in the review session — no commit required.
+     * The baseRef is still accepted for API compatibility (used by the
+     * diff provider to show the "before" content) but is NOT used
+     * for discovering which files to list.
      */
-    async getChangedFiles(baseRef: string, headRef: string = 'HEAD'): Promise<ChangedFile[]> {
-        logInfo(`Getting changed files: ${baseRef}..${headRef}`);
+    async getChangedFiles(baseRef: string, _headRef: string = 'HEAD'): Promise<ChangedFile[]> {
+        logInfo(`Getting changed files (git status mode)`);
 
-        const seenPaths = new Set<string>();
         const files: ChangedFile[] = [];
+        const seenPaths = new Set<string>();
 
-        // ── 1. Committed diff between baseRef and headRef ─────────────────────
+        // ── Use git status --porcelain to match exactly what `git status` shows ──
+        const statusOutput = await this.git.raw(['status', '--porcelain']);
+
+        for (const line of statusOutput.split('\n').filter(Boolean)) {
+            // Format: XY filename   or   XY old -> new  (for renames)
+            // X = index/staging status, Y = working tree status
+            // First 2 chars are the status codes, position 3 is a space
+            if (line.length < 4) { continue; }
+
+            const indexStatus = line.charAt(0);
+            const workTreeStatus = line.charAt(1);
+            let filePath: string;
+            let oldPath: string | undefined;
+
+            // Handle renames: "R  old.txt -> new.txt"
+            const rest = line.substring(3);
+            if (rest.includes(' -> ')) {
+                const parts = rest.split(' -> ');
+                oldPath = parts[0].trim();
+                filePath = parts[1].trim();
+            } else {
+                filePath = rest.trim();
+            }
+
+            if (!filePath || seenPaths.has(filePath)) { continue; }
+
+            // Determine file status from the porcelain codes
+            const status = mapPorcelainStatus(indexStatus, workTreeStatus);
+
+            files.push({
+                path: filePath,
+                status,
+                additions: 0,
+                deletions: 0,
+                oldPath,
+            });
+            seenPaths.add(filePath);
+        }
+
+        // ── Get line counts for better display ──
         try {
-            const nameStatusOutput = await this.git.raw(['diff', '--name-status', baseRef, headRef]);
-            const diffSummary = await this.git.diffSummary([`${baseRef}..${headRef}`]);
-
-            const statsByFile = new Map<string, { additions: number; deletions: number }>();
-            for (const file of diffSummary.files) {
+            // Staged line counts
+            const stagedSummary = await this.git.diffSummary(['--cached']);
+            for (const file of stagedSummary.files) {
                 const textFile = file as DiffResultTextFile;
-                statsByFile.set(textFile.file, {
-                    additions: textFile.insertions ?? 0,
-                    deletions: textFile.deletions ?? 0,
-                });
+                const match = files.find(f => f.path === textFile.file);
+                if (match) {
+                    match.additions += textFile.insertions ?? 0;
+                    match.deletions += textFile.deletions ?? 0;
+                }
             }
 
-            for (const line of nameStatusOutput.trim().split('\n').filter(Boolean)) {
-                const parts = line.split('\t');
-                if (parts.length < 2) { continue; }
-
-                const statusCode = parts[0].charAt(0);
-                const filePath = parts[parts.length === 3 ? 2 : 1].trim();
-                const oldPath = parts.length === 3 ? parts[1].trim() : undefined;
-                if (!filePath || seenPaths.has(filePath)) { continue; }
-
-                const stats = statsByFile.get(filePath) ?? statsByFile.get(oldPath ?? '') ?? { additions: 0, deletions: 0 };
-                files.push({ path: filePath, status: mapGitStatus(statusCode), additions: stats.additions, deletions: stats.deletions, oldPath });
-                seenPaths.add(filePath);
+            // Unstaged line counts
+            const unstagedSummary = await this.git.diffSummary([]);
+            for (const file of unstagedSummary.files) {
+                const textFile = file as DiffResultTextFile;
+                const match = files.find(f => f.path === textFile.file);
+                if (match) {
+                    match.additions += textFile.insertions ?? 0;
+                    match.deletions += textFile.deletions ?? 0;
+                }
             }
         } catch (err) {
-            logWarn(`Could not get committed diff: ${err}`);
+            logWarn(`Could not get line counts: ${err}`);
         }
 
-        // ── 2. Staged changes (git add'd but not yet committed) ───────────────
-        try {
-            const staged = await this.git.raw(['diff', '--name-status', '--cached']);
-            for (const line of staged.trim().split('\n').filter(Boolean)) {
-                const parts = line.split('\t');
-                if (parts.length < 2) { continue; }
-                const filePath = parts[parts.length === 3 ? 2 : 1].trim();
-                if (!filePath || seenPaths.has(filePath)) { continue; }
-
-                files.push({
-                    path: filePath,
-                    status: mapGitStatus(parts[0].charAt(0)),
-                    additions: 0,
-                    deletions: 0,
-                    oldPath: parts.length === 3 ? parts[1].trim() : undefined,
-                });
-                seenPaths.add(filePath);
-            }
-        } catch (err) {
-            logWarn(`Could not get staged changes: ${err}`);
-        }
-
-        // ── 3. Unstaged modifications to tracked files ────────────────────────
-        try {
-            const unstaged = await this.git.raw(['diff', '--name-status']);
-            for (const line of unstaged.trim().split('\n').filter(Boolean)) {
-                const parts = line.split('\t');
-                if (parts.length < 2) { continue; }
-                const filePath = parts[parts.length === 3 ? 2 : 1].trim();
-                if (!filePath || seenPaths.has(filePath)) { continue; }
-
-                files.push({
-                    path: filePath,
-                    status: mapGitStatus(parts[0].charAt(0)),
-                    additions: 0,
-                    deletions: 0,
-                    oldPath: parts.length === 3 ? parts[1].trim() : undefined,
-                });
-                seenPaths.add(filePath);
-            }
-        } catch (err) {
-            logWarn(`Could not get unstaged changes: ${err}`);
-        }
-
-        // ── 4. Untracked files (brand-new, never committed) ───────────────────
-        try {
-            const untracked = await this.git.raw(['ls-files', '--others', '--exclude-standard']);
-            for (const rawPath of untracked.trim().split('\n').filter(Boolean)) {
-                const filePath = rawPath.trim();
-                if (!filePath || seenPaths.has(filePath)) { continue; }
-
-                files.push({ path: filePath, status: 'added', additions: 0, deletions: 0 });
-                seenPaths.add(filePath);
-            }
-        } catch (err) {
-            logWarn(`Could not get untracked files: ${err}`);
-        }
-
-        logInfo(`Found ${files.length} changed files (committed + working tree)`);
+        logInfo(`Found ${files.length} changed files (matching git status)`);
         return files;
     }
 
@@ -188,12 +169,28 @@ export class GitService {
     }
 }
 
-function mapGitStatus(code: string): FileStatus {
-    switch (code) {
-        case 'A': return 'added';
-        case 'D': return 'deleted';
-        case 'R': return 'renamed';
-        case 'M':
-        default: return 'modified';
-    }
+/**
+ * Map git status --porcelain codes to our FileStatus.
+ *
+ * Porcelain format: XY
+ *   X = staging area status
+ *   Y = working tree status
+ *   ? = untracked
+ *   ! = ignored
+ */
+function mapPorcelainStatus(indexStatus: string, workTreeStatus: string): FileStatus {
+    // Untracked
+    if (indexStatus === '?' && workTreeStatus === '?') { return 'added'; }
+
+    // Deleted
+    if (indexStatus === 'D' || workTreeStatus === 'D') { return 'deleted'; }
+
+    // Renamed
+    if (indexStatus === 'R') { return 'renamed'; }
+
+    // Added (new file staged)
+    if (indexStatus === 'A') { return 'added'; }
+
+    // Modified (everything else: M, MM, AM, etc.)
+    return 'modified';
 }
