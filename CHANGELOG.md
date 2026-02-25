@@ -2,7 +2,11 @@
 
 All notable changes to the **Redline** extension will be documented in this file.
 
-## [0.2.0] - 2026-02-24
+## [0.2.2] - 2026-02-24
+ - Fixing publisher  in pkg.json
+
+## [0.2.1] - 2026-02-24
+ - Fixing github url in pkg.json
 
 ### Added
 - **`@redline` Chat Participant** — Native AI chat integration using the VS Code Chat Participant API.
