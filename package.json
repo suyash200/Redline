@@ -2,7 +2,7 @@
   "name": "redline",
   "displayName": "Redline-Review",
   "description": "Redline your AI's code before it ships — PR-style review for AI-generated changes",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "suyashlade",
   "license": "MIT",
   "repository": {
