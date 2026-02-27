@@ -4,6 +4,12 @@
 
 ---
 
+## 📺 Demo
+
+[Watch the Redline demo](media/Redline-demo.mp4)
+
+---
+
 ## 🚀 Key Features
 
 - **GitHub-Style Sidebar** — See all changed files at a glance with status icons (Added, Modified, Deleted, Renamed) and line stats.
@@ -172,6 +178,8 @@ If you prefer a script-based workflow, set `redline.autoFixCommand` in settings 
 ---
 
 ## 📋 Changelog
+
+- **Latest: 0.2.3 (2026-02-25)** — Unified Git Status mode, live line metrics, and improved auto-fix workflow.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
